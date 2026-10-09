@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package pe.edu.utp.bootstrap.demo.controller;
 
 import java.io.IOException;
@@ -22,6 +18,8 @@ import pe.edu.utp.bootstrap.demo.model.Producto;
 @WebServlet(name = "ProductoServlet", urlPatterns = {"/producto"})
 public class ProductoServlet extends HttpServlet {
 
+    ProductoDAO productoDao = new ProductoDAO();
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -33,19 +31,72 @@ public class ProductoServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet ProductoServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet ProductoServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+        try {
+
+            String accion = request.getParameter("accion");
+
+            switch (accion) {
+                case "listar"  -> {
+                    List<Producto> listProducto = productoDao.listar();
+                    request.setAttribute("listProducto", listProducto);
+
+                    request.getRequestDispatcher("productos.jsp").forward(request,
+                            response);
+                }
+                case "guardar"  -> {
+
+                    String nombre = request.getParameter("nombre");
+                    double precio
+                            = Double.parseDouble(request.getParameter("precio"));
+
+                    productoDao.crearProducto(nombre, precio);
+
+                    response.sendRedirect("producto?accion=listar");
+                }
+                case "buscar" -> {
+                    int id
+                            = Integer.parseInt(request.getParameter("id"));
+                    Producto producto = productoDao.obtener(id);
+                    request.setAttribute("producto", producto);
+
+                    request.getRequestDispatcher("editar.jsp").forward(request, response);
+                }
+                case "actualizar" -> {
+                    int id
+                            = Integer.parseInt(request.getParameter("id"));
+                    String nombre = request.getParameter("nombre");
+                    double precio
+                            = Double.parseDouble(request.getParameter("precio"));
+                    productoDao.actualizar(new Producto(id, nombre,
+                            precio));
+                    response.sendRedirect("producto?accion=listar");
+                }
+                case "eliminar" -> {
+                    int id
+                            = Integer.parseInt(request.getParameter("id"));
+                    productoDao.eliminar(id);
+                    response.sendRedirect("producto?accion=listar");
+                }
+                case "buscarNombre" -> {
+                    String nombre = request.getParameter("nombre");
+
+                    List<Producto> listProducto
+                            = productoDao.buscar(nombre);
+                    request.setAttribute("listProducto",
+                            listProducto);
+
+                    request.getRequestDispatcher("productos.jsp").forward(request,
+                            response);
+                }
+                default -> {
+                    System.err.println("Accion desconocida");
+                }
+            }
+        } catch (Exception e) {
+            response.getWriter().println("<h1>Error:</h1>"
+                    + e.getMessage());
         }
+
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -63,7 +114,6 @@ public class ProductoServlet extends HttpServlet {
         processRequest(request, response);
     }
 
-    ProductoDAO productoDao = new ProductoDAO();
     /**
      * Handles the HTTP <code>POST</code> method.
      *
@@ -75,25 +125,7 @@ public class ProductoServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        try {
-            String nombre = request.getParameter("nombre");
-            double precio
-                    = Double.parseDouble(request.getParameter("precio"));
-
-            productoDao.crearProducto(nombre, precio);
-
-            List<Producto> listProducto = productoDao.listar();
-            request.setAttribute("listProducto", listProducto);
-
-            request.getRequestDispatcher("productos.jsp").forward(request,
-                    response);
-
-        } catch (Exception e) {
-            response.getWriter().println("<h1>Error:</h1>"
-                    + e.getMessage());
-        }
-
+        processRequest(request, response);
     }
 
     /**

@@ -43,4 +43,59 @@ public class ProductoDAO {
 
         return list;
     }
+
+    public Producto obtener(int id) throws Exception {
+        Producto producto = null;
+        Connection cn = Conexion.getConexion();
+        PreparedStatement ps = cn.prepareStatement("SELECT * FROM producto WHERE id =  ?");
+        
+        ps.setInt(1, id);
+
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            producto = new Producto(rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getDouble("precio"));
+        }
+        return producto;
+    }
+
+    public int actualizar(Producto producto) throws Exception {
+        Connection cn = Conexion.getConexion();
+
+        PreparedStatement ps = cn.prepareStatement( "UPDATE producto SET nombre =  ?, precio =  ? WHERE  id =  ?");
+        
+        ps.setString(1, producto.getNombre());
+        ps.setDouble(2, producto.getPrecio());
+        
+        ps.setInt(3, producto.getId());
+
+        return ps.executeUpdate();
+    }
+
+    public int eliminar(int id) throws Exception {
+        Connection cn = Conexion.getConexion();
+        PreparedStatement ps = cn.prepareStatement(
+        "DELETE FROM producto WHERE id =  ?");
+        ps.setInt(1, id);
+        
+        return ps.executeUpdate();
+    }
+
+    public List<Producto> buscar(String nombre) throws Exception {
+        List<Producto> list = new ArrayList<>();
+        Connection cn = Conexion.getConexion();
+        PreparedStatement ps = cn.prepareStatement(
+        "SELECT * FROM producto WHERE nombre like ?");
+            ps.setString(1, nombre + "%"); 
+            
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            list.add(new Producto(rs.getInt("id"),
+                    rs.getString("nombre"),
+                    rs.getDouble("precio")));
+        }
+        return list;
+    }
 }
